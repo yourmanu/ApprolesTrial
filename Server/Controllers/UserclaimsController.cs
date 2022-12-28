@@ -12,22 +12,19 @@ namespace ApprolesTrial.Server.Controllers
     [RequiredScope(RequiredScopesConfigurationKey = "AzureAd:Scopes")]
     public class UserclaimsController : ControllerBase
     {
-        private System.Security.Claims.ClaimsPrincipal user;
-        private string result=" ";
-        private bool response = false;
         [HttpGet]
         public async Task<string> Get()
         {
+            string result=string.Empty;
             User.Claims.ToList().ForEach(c => result = result + c.Type + " : " + c.Value + "\n");
             return result;
         }
+
         [HttpGet]
         [Microsoft.AspNetCore.Mvc.Route("isinrole")]
         public bool GetBoolean([FromQuery] string rolename)
         {
-            user = User;
-            response= user.IsInRole(rolename);
-            return response;
+            return User.IsInRole(rolename);
         }
         
         [HttpGet]
