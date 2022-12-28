@@ -1,0 +1,94 @@
+﻿@page "/siva/{controllername}"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using ApprolesTrial.Shared
+@attribute [Authorize]
+@inject HttpClient Http
+@inject IUserclaims userClaims
+
+<PageTitle>@ControllerName.ToUpper()</PageTitle>
+
+@if (isAuthorised)
+{
+    if (!error && responsemessage != null)
+    {
+        <div class="col col-md-4">
+            <h1>@ControllerName.ToUpper()'s Page</h1>
+
+            <p>This component demonstrates app roles</p>
+
+            <p>@responsemessage</p>
+
+            <h3 class="text-muted alert-success">You are Authorized!</h3>
+        </div>
+    }
+    else
+    {
+        if (errorMessage != null)
+        {
+            <p>@errorMessage</p>
+        }
+        else
+        {
+            <p>Loading...</p>
+        }
+    }
+}
+else
+{
+    <div class="col col-md-4">
+        <h3 class="text-muted alert-danger">You are Unauthorized!</h3>
+    </div>
+}
+<br />
+<div class="col col-md-4">
+    <h3 class="text-muted">Your list of roles</h3>
+    @if (allroles != null)
+    {
+        <ul class="list-group">
+            @foreach (var role in allroles)
+            {
+
+                <li class="list-group-item">@role</li>
+
+            }
+        </ul>
+    }
+</div>
+@code {
+    [Parameter]
+    public string ControllerName { get; set; }
+
+    private string errorMessage;
+    private bool error = false;
+    private string responsemessage;
+    private bool isAuthorised = false;
+    private List<string> allroles;
+    protected override async Task<string> OnInitializedAsync()
+    {
+
+        try
+        {
+            allroles = await userClaims.GetRoles();
+            isAuthorised = await userClaims.IsInRole("siva.read");
+            var httpResponse = await Http.GetAsync($"{ControllerName}");
+            if (httpResponse.IsSuccessStatusCode)
+            {
+                var result = await httpResponse.Content.ReadAsStringAsync();
+                responsemessage = result;
+                return result;
+            }
+            else
+            {
+                errorMessage = $"Http Error {httpResponse.StatusCode}";
+                return responsemessage;
+            }
+        }
+        catch (Exception e)
+        {
+            errorMessage = $"{errorMessage} - {e.Message}";
+            error = true;
+            return errorMessage;
+        }
+    }
+}

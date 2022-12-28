@@ -1,0 +1,75 @@
+﻿@page "/fetchdata"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using ApprolesTrial.Shared
+@*@attribute [Authorize(Policy = "RequireExceptionRole")]
+@attribute [Authorize(Roles = "exception.read-write")]*@
+@attribute [Authorize]
+@inject HttpClient Http
+
+<PageTitle>Weather forecast</PageTitle>
+
+<h1>Weather forecast</h1>
+
+<p>This component demonstrates fetching data from the server.</p>
+
+@if (forecasts == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Temp. (C)</th>
+                <th>Temp. (F)</th>
+                <th>Summary</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var forecast in forecasts)
+            {
+                <tr>
+                    <td>@forecast.Date.ToShortDateString()</td>
+                    <td>@forecast.TemperatureC</td>
+                    <td>@forecast.TemperatureF</td>
+                    <td>@forecast.Summary</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+@if(error){
+    <p>@errorMessage</p>
+}
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    private WeatherForecast[]? forecasts;
+    private string errorMessage = "there is an error accessing this page";
+    private bool error = false;
+    protected override async Task OnInitializedAsync()
+    {
+
+        try
+        {
+            forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("WeatherForecast");
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+        catch (Exception e)
+        {
+            var authState = await authenticationStateTask;
+            var user = authState.User;
+            errorMessage = $"{errorMessage} - {e.Message} {user.IsInRole("exception.read-write")}";
+            error = true;
+            
+
+        }
+    }
+}

@@ -1,0 +1,76 @@
+﻿@page "/"
+@inject HttpClient Http
+@inject IUserclaims userClaims
+<PageTitle>Index</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<SurveyPrompt Title="How is Blazor working for you?" />
+<div class="col col-md-10">
+<textarea style="width: 100%; height: 50vh;">@allClaims</textarea>
+</div>
+@*@if (user is not null)
+{
+    <h3>@user.Identity.Name</h3>
+    <div class="m-2 p-2">
+        Is Authenticated: @user.Identity.IsAuthenticated
+    </div>
+    <div class="m-2 p-2">
+        Authentication Type: @user.Identity.AuthenticationType
+    </div>
+    <div class="m-2 p-2">
+        Admin Role: @user.IsInRole("vaidotas.read")
+    </div>
+    <div class="m-2 p-2">
+        <h5>Claims</h5>
+        @foreach (var claim in user.Claims)
+        {
+            <span>
+                @claim.Type
+            </span>
+            <span>:</span>
+            <span>
+                @claim.Value
+            </span>
+            <br />
+        }
+    </div>
+    <p>User Name: @displayName</p>
+}
+else
+{
+    <div class="m-2 p-2">
+        No User Exists
+    </div>
+}*@
+
+@*@code {
+    [CascadingParameter] public Task<AuthenticationState> AuthTask { get; set; }
+    private string displayName="siva";
+    private System.Security.Claims.ClaimsPrincipal user;
+    private System.Security.Claims.ClaimsPrincipal user1;
+
+    protected async override Task OnInitializedAsync()
+    {
+        var authState = await AuthTask;
+        this.user = authState.User;
+
+        var httpResponse = await Http.GetAsync("Userclaims/isinrole?rolename=all.read");
+        if (httpResponse.IsSuccessStatusCode)
+        {
+            var result = await httpResponse.Content.ReadAsStringAsync();
+            displayName = result;
+        }
+
+    }
+}*@
+
+@code {
+    private string allClaims;
+    protected override async Task OnInitializedAsync()
+    {
+        allClaims = await userClaims.GetClaims();       
+    }
+}
